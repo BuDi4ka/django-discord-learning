@@ -61,6 +61,20 @@ def register_user(request):
     return render(request, "base/login_register.html", context)
 
 
+def profile_user(request, pk):
+    user = User.objects.get(id=pk)
+    rooms = user.room_set.all()
+    room_messages = user.message_set.all()
+    topics = Topic.objects.all()
+    context = {
+        "user": user,
+        "rooms": rooms,
+        "room_messages": room_messages,
+        "topics": topics,
+    }
+    return render(request, "base/profile.html", context)
+
+
 def home(request):
     q = request.GET.get("q") if request.GET.get("q") else ""
 
