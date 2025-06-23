@@ -2,12 +2,12 @@
 
 {% block content %}
     <div>
-        <h1>Delete Room</h1>
-        <p>Are you sure you want to delete the room "{{ room.name }}"?</p>
+        <h1>Delete {{ model_name }}</h1>
+        <p>Are you sure you want to delete the {{ model_name }}"{{ obj.display_name }}"?</p>
         <form action="" method="POST">
             {% csrf_token %}
             <button type="submit">Confirm Delete</button>
         </form>
-        <a href="{% url 'base:home' %}">Cancel</a>
+        <a href="javascript:history.back()">Go back</a>
     </div>
 {% endblock content %}

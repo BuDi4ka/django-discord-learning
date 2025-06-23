@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import Room, Topic
+from .models import Room, Topic, Message
 from .forms import RoomForm
 
 
@@ -53,12 +53,13 @@ def register_user(request):
             user.username = user.username.lower()
             user.save()
             login(request, user)
-            return redirect('base:home')
+            return redirect("base:home")
         else:
-            messages.error(request, 'An error occured during registration')
+            messages.error(request, "An error occured during registration")
 
     context = {"form": form}
     return render(request, "base/login_register.html", context)
+
 
 def home(request):
     q = request.GET.get("q") if request.GET.get("q") else ""
@@ -76,7 +77,21 @@ def home(request):
 
 def room(request, pk):
     room = Room.objects.get(pk=pk)
-    context = {"room": room}
+    room_messages = room.message_set.all().order_by("-created")
+    participants = room.participants.all()
+
+    if request.method == "POST":
+        message = Message.objects.create(
+            user=request.user, room=room, body=request.POST.get("body")
+        )
+        room.participants.add(request.user)
+        return redirect("base:room", pk=room.id)
+
+    context = {
+        "room": room,
+        "room_messages": room_messages,
+        "participants": participants,
+    }
     return render(request, "base/room.html", context)
 
 
@@ -114,10 +129,27 @@ def update_room(request, pk):
 @login_required(login_url="/login")
 def delete_room(request, pk):
     room = Room.objects.get(id=pk)
+    model_name = room._meta.verbose_name
 
     if request.method == "POST":
         room.delete()
         return redirect("base:home")
 
-    context = {"room": room}
+    context = {"obj": room, "model_name": model_name}
+    return render(request, "base/delete.html", context)
+
+
+@login_required(login_url="/login")
+def delete_message(request, pk):
+    message = Message.objects.get(id=pk)
+    model_name = message._meta.verbose_name
+
+    if request.user != message.user:
+        return HttpResponse('You are not allowed here!!')
+
+    if request.method == "POST":
+        message.delete()
+        return redirect("base:home")
+
+    context = {"obj": message, "model_name": model_name}
     return render(request, "base/delete.html", context)
