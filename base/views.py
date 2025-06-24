@@ -185,3 +185,8 @@ def delete_message(request, pk):
 
     context = {"obj": message, "model_name": model_name}
     return render(request, "base/delete.html", context)
+
+
+@login_required(login_url='/login')
+def update_user(request):
+    return render(request, 'base/update-user.html')
